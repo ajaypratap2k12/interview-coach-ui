@@ -1,0 +1,131 @@
+<div class="app-container">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="logo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+        <h1>Interview Coach</h1>
+      </div>
+      <div class="header-actions" *ngIf="sessionStarted">
+        <button class="btn btn-secondary" (click)="newSession()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          New Session
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Welcome Screen -->
+    <div class="welcome-screen" *ngIf="!sessionStarted && !isLoading">
+      <div class="welcome-card">
+        <div class="welcome-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <h2>Welcome to Interview Coach</h2>
+        <p>Practice technical interviews with AI-powered feedback</p>
+        <div class="features">
+          <div class="feature">
+            <span class="feature-icon">☕</span>
+            <span>Java</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🌱</span>
+            <span>Spring Boot</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">☁️</span>
+            <span>AWS</span>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-large" (click)="startSession()">
+          Start Interview
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-screen" *ngIf="isLoading && !sessionStarted">
+      <div class="spinner"></div>
+      <p>Starting your interview session...</p>
+    </div>
+
+    <!-- Chat Interface -->
+    <div class="chat-container" *ngIf="sessionStarted">
+      <div class="messages" #messagesContainer>
+        <div *ngFor="let message of messages" class="message message-{{ message.role }}">
+          <div class="message-avatar">
+            <span *ngIf="message.role === 'system'">🤖</span>
+            <span *ngIf="message.role === 'question'">🎤</span>
+            <span *ngIf="message.role === 'answer'">👤</span>
+            <span *ngIf="message.role === 'feedback'">📊</span>
+          </div>
+          <div class="message-content">
+            <div class="message-header">
+              <span class="message-role" *ngIf="message.role === 'system'">System</span>
+              <span class="message-role" *ngIf="message.role === 'question'">Interviewer</span>
+              <span class="message-role" *ngIf="message.role === 'answer'">You</span>
+              <span class="message-role" *ngIf="message.role === 'feedback'">Evaluation</span>
+              <span class="message-time">{{ message.timestamp | date:'shortTime' }}</span>
+            </div>
+            <div class="message-text">{{ message.content }}</div>
+            <div class="message-score" *ngIf="message.score !== undefined && message.score !== null">
+              <span class="score-badge" [style.background]="getScoreColor(message.score)">
+                Score: {{ formatScore(message.score) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="message message-loading" *ngIf="isLoading">
+          <div class="message-avatar">🤖</div>
+          <div class="message-content">
+            <div class="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="input-area">
+        <div class="input-container">
+          <textarea
+            [(ngModel)]="currentAnswer"
+            (keydown.enter)="handleEnter($event)"
+            placeholder="Type your answer here..."
+            rows="3"
+            [disabled]="isLoading"
+          ></textarea>
+          <button 
+            class="btn btn-primary send-btn" 
+            (click)="submitAnswer()"
+            [disabled]="!currentAnswer.trim() || isLoading"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 2L11 13"/>
+              <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
+            </svg>
+          </button>
+        </div>
+        <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
+      </div>
+    </div>
+  </main>
+</div>
