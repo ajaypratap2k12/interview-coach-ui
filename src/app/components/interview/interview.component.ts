@@ -13,6 +13,7 @@ import { InterviewService, ChatMessage } from '../../services/interview.service'
 })
 export class InterviewComponent implements OnInit, OnDestroy {
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
+  @ViewChild('askMessagesContainer') private askMessagesContainer!: ElementRef;
 
   messages: ChatMessage[] = [];
   currentAnswer = '';
@@ -21,6 +22,13 @@ export class InterviewComponent implements OnInit, OnDestroy {
   lastQuestion = '';
   private subscription: Subscription | null = null;
 
+  // Ask Question mode
+  askMode = false;
+  askMessages: ChatMessage[] = [];
+  askQuestionInput = '';
+  askLoading = false;
+  private askSubscription: Subscription | null = null;
+
   constructor(private interviewService: InterviewService) {}
 
   ngOnInit(): void {
@@ -28,10 +36,15 @@ export class InterviewComponent implements OnInit, OnDestroy {
       this.messages = messages;
       this.scrollToBottom();
     });
+    this.askSubscription = this.interviewService.askMessages$.subscribe(messages => {
+      this.askMessages = messages;
+      this.scrollToBottom();
+    });
   }
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
+    this.askSubscription?.unsubscribe();
   }
 
   startSession(): void {
@@ -86,20 +99,65 @@ export class InterviewComponent implements OnInit, OnDestroy {
     this.sessionStarted = false;
     this.messages = [];
     this.lastQuestion = '';
+    this.askMode = false;
   }
 
   handleEnter(event: Event): void {
     const keyboardEvent = event as KeyboardEvent;
     if (!keyboardEvent.shiftKey) {
       keyboardEvent.preventDefault();
-      this.submitAnswer();
+      if (this.askMode) {
+        this.submitAskQuestion();
+      } else {
+        this.submitAnswer();
+      }
     }
+  }
+
+  startAskMode(): void {
+    this.askMode = true;
+    this.askMessages = [
+      {
+        id: crypto.randomUUID(),
+        role: 'system',
+        content: 'Ask any question about Java, Spring, or AWS',
+        timestamp: new Date()
+      }
+    ];
+  }
+
+  submitAskQuestion(): void {
+    if (!this.askQuestionInput.trim() || this.askLoading) return;
+
+    const question = this.askQuestionInput.trim();
+    this.askQuestionInput = '';
+    this.askLoading = true;
+    this.scrollToBottom();
+
+    this.interviewService.askQuestion(question).subscribe({
+      next: () => {
+        this.askLoading = false;
+        this.scrollToBottom();
+      },
+      error: (err) => {
+        console.error('Failed to ask question:', err);
+        this.askLoading = false;
+        alert('Failed to get answer. Please try again.');
+      }
+    });
+  }
+
+  newAskSession(): void {
+    this.interviewService.clearAskMessages();
+    this.askMessages = [];
+    this.askMode = false;
   }
 
   private scrollToBottom(): void {
     setTimeout(() => {
-      if (this.messagesContainer) {
-        const element = this.messagesContainer.nativeElement;
+      const container = this.askMode ? this.askMessagesContainer : this.messagesContainer;
+      if (container) {
+        const element = container.nativeElement;
         element.scrollTop = element.scrollHeight;
       }
     }, 100);

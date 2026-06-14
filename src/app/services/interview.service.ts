@@ -27,6 +27,11 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
+export interface AskQuestionResponse {
+  question: string;
+  answer: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -34,8 +39,10 @@ export class InterviewService {
   private apiUrl = 'http://localhost:8080';
   private sessionId: string | null = null;
   private messagesSubject = new BehaviorSubject<ChatMessage[]>([]);
-  
+  private askMessagesSubject = new BehaviorSubject<ChatMessage[]>([]);
+
   messages$ = this.messagesSubject.asObservable();
+  askMessages$ = this.askMessagesSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -85,6 +92,28 @@ export class InterviewService {
         error: (err) => observer.error(err)
       });
     });
+  }
+
+  askQuestion(question: string): Observable<AskQuestionResponse> {
+    return new Observable(observer => {
+      this.http.get<AskQuestionResponse>(`${this.apiUrl}/interview`, {
+        params: { question }
+      }).subscribe({
+        next: (response) => {
+          const messages = [...this.askMessagesSubject.value];
+          messages.push(this.createMessage('answer', question));
+          messages.push(this.createMessage('question', response.answer));
+          this.askMessagesSubject.next(messages);
+          observer.next(response);
+          observer.complete();
+        },
+        error: (err) => observer.error(err)
+      });
+    });
+  }
+
+  clearAskMessages(): void {
+    this.askMessagesSubject.next([]);
   }
 
   private createMessage(role: ChatMessage['role'], content: string, score?: number): ChatMessage {
