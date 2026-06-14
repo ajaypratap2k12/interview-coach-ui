@@ -45,7 +45,7 @@ export class InterviewService {
         next: (response) => {
           this.sessionId = response.sessionId;
           const messages = [
-            this.createMessage('system', 'Interview session started. Ask me anything about Java, Spring, or AWS!'),
+            this.createMessage('system', 'Interview session started. Ask me anything about Java, Spring'),
             this.createMessage('question', response.currentQuestion)
           ];
           this.messagesSubject.next(messages);
