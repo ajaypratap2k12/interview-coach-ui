@@ -112,7 +112,7 @@
               <span class="message-role" *ngIf="message.role === 'feedback'">Evaluation</span>
               <span class="message-time">{{ message.timestamp | date:'shortTime' }}</span>
             </div>
-            <div class="message-text">{{ message.content }}</div>
+            <div class="message-text markdown-body" [innerHTML]="message.content | markdown"></div>
             <div class="message-score" *ngIf="message.score !== undefined && message.score !== null">
               <span class="score-badge" [style.background]="getScoreColor(message.score)">
                 Score: {{ formatScore(message.score) }}
@@ -175,7 +175,7 @@
               <span class="message-role" *ngIf="message.role === 'answer'">Your Question</span>
               <span class="message-time">{{ message.timestamp | date:'shortTime' }}</span>
             </div>
-            <div class="message-text">{{ message.content }}</div>
+            <div class="message-text markdown-body" [innerHTML]="message.content | markdown"></div>
           </div>
         </div>
 

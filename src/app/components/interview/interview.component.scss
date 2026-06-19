@@ -262,8 +262,13 @@
 
 .message-text {
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.6;
   white-space: pre-wrap;
+
+  &.markdown-body {
+    white-space: normal;
+    font-size: 0.9375rem;
+  }
 }
 
 .message-score {

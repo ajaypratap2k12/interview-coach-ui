@@ -29,7 +29,7 @@ export interface ChatMessage {
 
 export interface AskQuestionResponse {
   question: string;
-  answer: string;
+  finalAnswer: string;
 }
 
 @Injectable({
@@ -102,7 +102,7 @@ export class InterviewService {
         next: (response) => {
           const messages = [...this.askMessagesSubject.value];
           messages.push(this.createMessage('answer', question));
-          messages.push(this.createMessage('question', response.answer));
+          messages.push(this.createMessage('question', response.finalAnswer));
           this.askMessagesSubject.next(messages);
           observer.next(response);
           observer.complete();
